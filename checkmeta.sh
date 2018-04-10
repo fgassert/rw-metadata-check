@@ -6,7 +6,7 @@ jq ".data[10]" < datasets.json
 
 echo "Incomplete metadata"
 echo "id, dataset" > noMetadata.csv
-jq -r ".data[] | select((.attributes.metadata | length<1) or ([.attributes.metadata[] | .attributes.info.citation | not] | any)) | [.id, .attributes.name] | @csv" >> noMetadata.csv < datasets.json
+jq -r ".data[] | select((.attributes.metadata | length<1) or ([.attributes.metadata[] | .attributes.info.citation | not] | all)) | [.id, .attributes.name] | @csv" >> noMetadata.csv < datasets.json
 wc -l noMetadata.csv
 
 echo "No tags"
@@ -38,6 +38,12 @@ echo "No layer interaction (Carto)"
 echo "id, layer, dataset_id" > cartoLayerNoInteraction.csv
 jq -r ".data[] | select(.attributes.provider==\"cartodb\") | select(.attributes.layer | length > 0) | .attributes.layer[] | select(.attributes.interactionConfig.output | length < 1) | [.id, .attributes.name, .attributes.dataset] | @csv" >> cartoLayerNoInteraction.csv < datasets.json
 wc -l cartoLayerNoInteraction.csv
+
+echo "No subscription NRT"
+echo "id, dataset" > noSubscription.csv
+jq -r ".data[] | select(.attributes.name | test(\".nrt\")) | select(.attributes.subscribable | length < 1) | [.id, .attributes.name] | @csv" >> noSubscription.csv < datasets.json
+wc -l noSubscription.csv
+
 
 rm -f dataStatus.zip
 zip dataStatus.zip *.csv
